@@ -1,92 +1,128 @@
 <template>
   <div>
-    <h1>{{ title }}</h1>
-    <div>
-      <v-card :loading="loading" class="mx-auto my-12" max-width="374">
-        <template slot="progress">
-          <v-progress-linear
-            color="deep-purple"
-            height="10"
-            indeterminate
-          ></v-progress-linear>
-        </template>
-
-        <v-img
-          height="250"
-          src="https://cdn.vuetifyjs.com/images/cards/cooking.png"
-        ></v-img>
-
-        <v-card-title>Cafe Badilico</v-card-title>
-
-        <v-card-text>
-          <v-row align="center" class="mx-0">
-            <v-rating
-              :value="4.5"
-              color="amber"
-              dense
-              half-increments
-              readonly
-              size="14"
-            ></v-rating>
-
-            <div class="grey--text ms-4">4.5 (413)</div>
-          </v-row>
-
-          <div class="my-4 text-subtitle-1">$ • Italian, Cafe</div>
-
-          <div>
-            Small plates, salads & sandwiches - an intimate setting with 12
-            indoor seats plus patio seating.
-          </div>
-        </v-card-text>
-
-        <v-divider class="mx-4"></v-divider>
-
-        <v-card-title>Tonight's availability</v-card-title>
-
-        <v-card-text>
-          <v-chip-group
-            v-model="selection"
-            active-class="deep-purple accent-4 white--text"
-            column
+    <v-card height="800px" class="scroll">
+      <div
+        v-for="(item, i) of items"
+        :key="i"
+      >
+        <v-card class="my-12 mx-3 pa-6 transition-swing" max-width="374" :elevation="hover ? 24 : 6">
+          <template slot="progress">
+            <v-progress-linear
+              color="deep-purple"
+              height="10"
+              indeterminate
+            ></v-progress-linear>
+          </template>
+          <div
+            style="
+              display: flex;
+              padding-left: 15px;
+              padding-rigth: 15px;
+              padding-top: 15px;
+            "
           >
-            <v-chip>5:30PM</v-chip>
+            <div style="flex: 1; padding-bottom: 0; margin-top: -10px">
+              <v-card-title>Order # {{ item.id }}</v-card-title>
+            </div>
+            <div style="flex: 1; padding-bottom: 0">
+              <v-alert max-width="150" outlined dense type="success"
+                >Pending</v-alert
+              >
+            </div>
+          </div>
+          <v-divider class="mx-4"></v-divider>
+          <div style="display: flex; padding-left: 15px; padding-rigth: 15px">
+            <div style="flex: 1">
+              <div style="padding-left: 10px">
+                <span class="title">Products</span>
+              </div>
+              <div
+                style="display: flex; padding-left: 20px"
+                v-for="(child, index) of item.details"
+                :key="index"
+              >
+                <div>{{ child.description }}</div>
+                &nbsp;-&nbsp;
+                <div>{{ child.quantity }}</div>
+              </div>
+            </div>
+            <div style="flex: 1">
+              <v-btn
+                color="blue-grey"
+                class="ma-2 white--text"
+                small
+                @click="change(item)"
+              >
+                <v-icon left dark> mdi-play </v-icon>
+                In Progress
+              </v-btn>
+            </div>
+          </div>
+          <v-card-text> </v-card-text>
 
-            <v-chip>7:30PM</v-chip>
-
-            <v-chip>8:00PM</v-chip>
-
-            <v-chip>9:00PM</v-chip>
-          </v-chip-group>
-        </v-card-text>
-
-        <v-card-actions>
-          <v-btn color="black lighten-2" text @click="change">
-            Reserve
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </div>
+          <v-card-actions class="btnBM">
+            <v-btn color="red accent-4" class="ma-2 white--text" small @click="cancel(item)">
+              <v-icon left dark> mdi-delete </v-icon>
+              Cancel
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </div>
+    </v-card>
   </div>
 </template>
 
 <script>
+import Axios from "axios";
 export default {
   data() {
     return {
       title: "Pending",
       loading: false,
+      items: [],
     };
   },
+  created() {
+    this.getOrders();
+  },
   methods: {
-    change() {
-      this.loading = true;
+    getOrders() {
+      Axios.get("/order/status/1").then((response) => {
+        this.items = response.data;
+      });
+    },
+    change(item) {
+      item.status = 2
 
-      setTimeout(() => (this.loading = false), 2000);
+      Axios.put(`/order/update/${item.id}`, item)
+      .then(response => {
+        console.log(response);
+        this.getOrders();
+      })
+      .catch(err => {
+        console.log(err);
+      })
+    },
+    cancel(item) {
+      item.status = 5
+      Axios.put(`/order/update/${item.id}`, item)
+        .then((response) => {
+          console.log(response);
+          this.getOrders();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     },
   },
 };
 </script>
 
 <style scoped>
+.btnBM {
+  justify-content: end;
+}
+.scroll {
+  overflow-y: auto;
+}
 </style>

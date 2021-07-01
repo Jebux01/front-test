@@ -1,19 +1,94 @@
 <template>
   <div>
-    <h1>{{title}}</h1>
+    <v-card height="800px" class="scroll">
+      <div
+        v-for="(item, i) of items"
+        :key="i"
+      >
+        <v-card class="my-12 mx-3 pa-6 transition-swing" max-width="374" :elevation="hover ? 24 : 6">
+          <template slot="progress">
+            <v-progress-linear
+              color="deep-purple"
+              height="10"
+              indeterminate
+            ></v-progress-linear>
+          </template>
+          <div
+            style="
+              display: flex;
+              padding-left: 15px;
+              padding-rigth: 15px;
+              padding-top: 15px;
+            "
+          >
+            <div style="flex: 1; padding-bottom: 0; margin-top: -10px">
+              <v-card-title>Order # {{ item.id }}</v-card-title>
+            </div>
+            <div style="flex: 1; padding-bottom: 0">
+              <v-alert max-width="150" outlined dense type="error"
+                >Canceled</v-alert
+              >
+            </div>
+          </div>
+          <v-divider class="mx-4"></v-divider>
+          <div style="display: flex; padding-left: 15px; padding-rigth: 15px">
+            <div style="flex: 1">
+              <div style="padding-left: 10px">
+                <span class="title">Products</span>
+              </div>
+              <div
+                style="display: flex; padding-left: 20px"
+                v-for="(child, index) of item.details"
+                :key="index"
+              >
+                <div>{{ child.description }}</div>
+                &nbsp;-&nbsp;
+                <div>{{ child.quantity }}</div>
+              </div>
+            </div>
+          </div>
+          <v-card-text> </v-card-text>
+
+          <v-card-actions class="btnBM">
+            <v-btn color="red accent-4" class="ma-2 white--text" small>
+              <v-icon left dark> mdi-delete </v-icon>
+              Cancel
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </div>
+    </v-card>
   </div>
 </template>
 
 <script>
+import Axios from "axios";
 export default {
   data() {
     return {
-      title: "Canceladas",
+      title: "Pending",
+      loading: false,
+      items: [],
     };
+  },
+  created() {
+    this.getOrders();
+  },
+  methods: {
+    getOrders() {
+      Axios.get("/order/status/5").then((response) => {
+        this.items = response.data;
+      });
+    },
   },
 };
 </script>
 
 <style scoped>
-
+.btnBM {
+  justify-content: end;
+}
+.scroll {
+  overflow-y: auto;
+}
 </style>
